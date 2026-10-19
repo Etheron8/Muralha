@@ -40,7 +40,7 @@ def run_hidden_tests(
 
     image = os.getenv("MURALHA_DOCKER_IMAGE", "muralha-test-runner:py312")
     inspected = subprocess.run(
-        ["docker", "image", "inspect", image], capture_output=True, text=True, timeout=5
+        ["docker", "image", "inspect", image], check=False, capture_output=True, text=True, timeout=5
     )
     if inspected.returncode != 0:
         return {"status": "not_configured", "passed": None, "message": "Imagem local de testes ausente."}
