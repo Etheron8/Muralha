@@ -107,7 +107,7 @@ Esse fluxo CI é a primeira forma prática de avaliação compartilhada. A API R
 ## Segurança e confiança
 
 - Todos os desafios são de laboratório e não devem ser conectados a sistemas reais.
-- O código submetido pode ser hostil. O executor de testes fica desativado por padrão e, quando habilitado, usa contêiner Docker sem rede, sem capacidades Linux, com limites de CPU/memória/processos e sistema de arquivos somente leitura.
+- O código submetido pode ser hostil. O executor de testes fica desativado por padrão. Quando habilitado, roda cada caso em contêiner descartável sem rede, sem capacidades Linux, com limites de CPU/memória/processos e filesystem somente leitura; os resultados esperados ficam fora do contêiner.
 - Docker é uma camada de contenção, não uma garantia contra todas as vulnerabilidades de escape de contêiner. Execute o worker em uma VM descartável, sem credenciais, dados sensíveis ou acesso a outros serviços.
 - A API pública precisa ser implantada em um serviço HTTPS com limite de tráfego e armazenamento persistente. O código no GitHub, por si só, não cria um endpoint online.
 - O catálogo de desafios é público; as chaves de avaliação e testes secretos precisam ficar em arquivos privados/montados fora do repositório.
