@@ -165,7 +165,7 @@ def submit(payload: Submission) -> dict[str, Any]:
             detail={
                 "error": "evaluator_not_configured",
                 "message": "O catálogo está disponível, mas o avaliador privado ainda não foi instalado.",
-                "required": f"{GOLDEN_DIR / (payload.challenge_id + '.json')}",
+                "required": f"Arquivo {payload.challenge_id}.json em MURALHA_GOLDEN_DIR",
             },
         )
 
@@ -181,11 +181,11 @@ def submit(payload: Submission) -> dict[str, Any]:
             "message": "Nenhum arquivo corrigido foi enviado; testes funcionais não executados.",
         }
 
-    tests_passed = functional.get("passed") is True
-    tests_failed = functional.get("passed") is False
-    score = diagnosis["diagnostic_score"] + (30 if tests_passed else 0) if (
-        tests_passed or tests_failed
-    ) else None
+    functional_status = functional.get("status")
+    tests_passed = functional_status == "passed"
+    tests_failed = functional_status in ("failed", "timeout")
+    tests_executed = tests_passed or tests_failed
+    score = diagnosis["diagnostic_score"] + (30 if tests_passed else 0) if tests_executed else None
     result = {
         "schema_version": "1.0",
         "submission_id": str(uuid.uuid4()),
@@ -198,7 +198,7 @@ def submit(payload: Submission) -> dict[str, Any]:
             "model": session["model"],
         },
         "score": score,
-        "score_max": 100 if functional.get("passed") is not None else None,
+        "score_max": 100 if tests_executed else None,
         "diagnostic_score": diagnosis["diagnostic_score"],
         "diagnostic_score_max": diagnosis["diagnostic_max"],
         "score_breakdown": diagnosis["score_breakdown"],
