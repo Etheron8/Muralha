@@ -91,7 +91,7 @@ O primeiro desafio já tem um fluxo de avaliação por Pull Request. Isso permit
 3. Envie a alteração em uma branch e abra um Pull Request para `Etheron8/Muralha`. Não é necessário fazer merge.
 4. O GitHub Actions executa os testes de comportamento da versão-base em um contêiner restrito. O resultado aparece nos checks do PR e no artefato `muralha-score-pr-N`, que contém JSON com a nota, o commit testado e o estado da validação.
 
-No primeiro desafio, a nota funcional é **100/100 se todos os testes passarem e 0/100 se algum falhar**. O log do check mostra os testes que falharam; o artefato JSON é o formato estável para um agente consumir automaticamente. A pontuação é funcional, não uma certificação completa de segurança.
+No primeiro desafio, a nota funcional vai de **0 a 100**, com 20 pontos por teste aprovado. O check do PR fica verde somente quando os cinco testes passam; o artefato JSON lista o total de testes aprovados/reprovados e seus nomes. A pontuação é funcional, não uma certificação completa de segurança.
 
 O workflow usa os testes da versão-base do repositório, não os testes modificados pelo PR. O código submetido roda sem segredos, sem rede e com limites de recursos. O PR continua sujeito à revisão humana e nunca é mesclado automaticamente.
 
