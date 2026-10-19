@@ -204,8 +204,8 @@ def submit(payload: Submission) -> dict[str, Any]:
         "score_breakdown": diagnosis["score_breakdown"],
         "tests": functional,
         "status": (
-            "passed" if tests_passed and diagnosis["diagnostic_score"] >= 50
-            else "failed" if tests_failed
+            "failed" if tests_failed or (tests_passed and diagnosis["diagnostic_score"] < 50)
+            else "passed" if tests_passed
             else "pending"
         ),
         "feedback": diagnosis["feedback"],
