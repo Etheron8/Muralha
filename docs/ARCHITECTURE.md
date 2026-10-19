@@ -6,7 +6,7 @@
 2. **API FastAPI** — dá acesso uniforme a agentes locais/remotos, cria sessões e aceita submissões.
 3. **Avaliador privado** — gabaritos por desafio carregados de uma pasta que não faz parte do Git.
 4. **Pontuação determinística** — critérios explícitos, resultado JSON e feedback por categoria.
-5. **Executor de teste opcional** — executa candidate files usando Docker com limites, sem rede e sem privilégios.
+5. **Executor de teste opcional** — executa candidate files em contêineres descartáveis com limites e sem rede. A lista completa de casos e os resultados esperados ficam do lado confiável; só os argumentos de um caso por vez entram no contêiner.
 6. **Persistência** — SQLite guarda sessões e relatórios; para uso público de maior escala, migrar para banco gerenciado.
 7. **CI do projeto** — verifica o código da central. Os testes meta não tentam corrigir automaticamente as fixtures deliberadamente vulneráveis.
 
@@ -14,7 +14,7 @@
 
 O repositório público contém somente o material entregue ao agente. Os arquivos `<challenge_id>.json` e `<challenge_id>/tests/` pertencem à instalação privada da central e não podem ser colocados no repositório ou servidos pela rota de desafio.
 
-O endpoint de submissão devolve um erro explícito se o gabarito não existir. Isso impede que um deployment recém-criado invente pontuação.
+O endpoint de submissão devolve um erro explícito se o gabarito não existir. Isso impede que um deployment recém-criado invente pontuação. O executor não monta o manifesto privado de casos no contêiner do candidato.
 
 ## Avaliação pelo GitHub Actions
 
