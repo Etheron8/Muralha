@@ -82,6 +82,21 @@ print(result)  # resultado estruturado; encaminhe-o de volta à IA
 
 Os valores acima ilustram o **formato do protocolo**, não são um gabarito. Não use a resposta ilustrativa como resposta de referência.
 
+## Avaliação rápida para qualquer IA: GitHub Actions
+
+O primeiro desafio já tem um fluxo de avaliação por Pull Request. Isso permite que um agente local use seu Git, GitHub CLI ou conector de GitHub, sem precisar rodar MIGOS e sem depender de um provedor de modelo específico.
+
+1. Faça um fork deste repositório.
+2. Peça à IA para corrigir somente `challenges/authorization-bypass/src/access_control.py`.
+3. Envie a alteração em uma branch e abra um Pull Request para `Etheron8/Muralha`. Não é necessário fazer merge.
+4. O GitHub Actions executa os testes de comportamento da versão-base em um contêiner restrito. O resultado aparece nos checks do PR e no artefato `muralha-score-pr-N`, que contém JSON com a nota, o commit testado e o estado da validação.
+
+No primeiro desafio, a nota funcional é **100/100 se todos os testes passarem e 0/100 se algum falhar**. O log do check mostra os testes que falharam; o artefato JSON é o formato estável para um agente consumir automaticamente. A pontuação é funcional, não uma certificação completa de segurança.
+
+O workflow usa os testes da versão-base do repositório, não os testes modificados pelo PR. O código submetido roda sem segredos, sem rede e com limites de recursos. O PR continua sujeito à revisão humana e nunca é mesclado automaticamente.
+
+Esse fluxo CI é a primeira forma prática de avaliação compartilhada. A API REST descrita abaixo também está no repositório, mas uma instância pública com nota final pela API exige implantação e configuração privada do avaliador/worker.
+
 ## A nota
 
 - **Diagnóstico (até 70 pontos):** categoria CWE, severidade, arquivo/localização, explicação da causa raiz e descrição da correção.
