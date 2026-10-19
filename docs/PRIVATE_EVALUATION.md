@@ -27,7 +27,7 @@ Quando `MURALHA_ENABLE_SANDBOX=true`, o serviço procura os testes em:
 <MURALHA_PRIVATE_TESTS_DIR>/<challenge_id>/tests/
 ```
 
-Os testes rodam dentro do contêiner de teste e precisam validar os requisitos observáveis da função corrigida. Use nomes e casos de teste não previsíveis, mas não dependa de segredos de produção. O runner atual usa pytest e a imagem de Python configurada em `MURALHA_DOCKER_IMAGE`.
+Os testes rodam dentro do contêiner de teste e precisam validar os requisitos observáveis da função corrigida. Construa a imagem previamente com `docker build -t muralha-test-runner:py312 -f sandbox/Dockerfile .` (ou execute `scripts/build_test_runner.ps1` no PowerShell). O processo da API precisa ter acesso ao cliente Docker e a um daemon controlado; não exponha o socket Docker à internet e prefira um worker/VM dedicado. Use nomes e casos de teste não previsíveis, mas não dependa de segredos de produção. O runner atual usa pytest e a imagem de Python configurada em `MURALHA_DOCKER_IMAGE`.
 
 Antes de instalar um gabarito, valide que:
 - o ID coincide exatamente com o desafio do catálogo;
