@@ -16,7 +16,7 @@ def build_result(
 ) -> dict[str, Any]:
     valid_counts = total_count > 0 and 0 <= passed_count <= total_count
     passed = passed_count if valid_counts else 0
-    total = total_count if total_count > 0 else 0
+    total = max(0, total_count)
     runner_completed = runner_status == "completed"
     score = round(100 * passed / total) if valid_counts and runner_completed else None
     status = (
