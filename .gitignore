@@ -17,6 +17,7 @@ build/
 private_oracles/
 private_tests/
 data/private/
+/data/
 secrets/
 .DS_Store
 Thumbs.db
