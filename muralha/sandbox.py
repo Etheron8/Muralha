@@ -38,7 +38,13 @@ def run_hidden_tests(
     if sum(len(content.encode("utf-8")) for content in candidate_files.values()) > 256_000:
         return {"status": "rejected", "passed": False, "message": "A submissão excede 256 KB."}
 
-    image = os.getenv("MURALHA_DOCKER_IMAGE", "python:3.12-slim")
+    image = os.getenv("MURALHA_DOCKER_IMAGE", "muralha-test-runner:py312")
+    inspected = subprocess.run(
+        ["docker", "image", "inspect", image], capture_output=True, text=True, timeout=5
+    )
+    if inspected.returncode != 0:
+        return {"status": "not_configured", "passed": None, "message": "Imagem local de testes ausente."}
+
     with tempfile.TemporaryDirectory(prefix="muralha-") as temp:
         candidate_root = Path(temp) / "candidate"
         candidate_root.mkdir()
@@ -55,7 +61,7 @@ def run_hidden_tests(
                               encoding="utf-8")
 
         command = [
-            "docker", "run", "--rm",
+            "docker", "run", "--rm", "--pull=never",
             "--network=none", "--cpus=0.5", "--memory=256m", "--memory-swap=256m",
             "--pids-limit=64", "--cap-drop=ALL", "--security-opt=no-new-privileges:true",
             "--read-only", "--user=65534:65534",
@@ -63,7 +69,7 @@ def run_hidden_tests(
             "-v", f"{candidate_root}:/candidate:ro",
             "-v", f"{tests_dir}:/tests:ro",
             "-w", "/candidate",
-            image, "python", "-I", "-m", "pytest", "-q", "/tests",
+            image, "python", "-I", "-B", "-m", "pytest", "-p", "no:cacheprovider", "-q", "/tests",
         ]
         try:
             completed = subprocess.run(
