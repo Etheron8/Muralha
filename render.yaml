@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: muralha-benchmark
+    runtime: docker
+    plan: starter
+    healthCheckPath: /v1/health
+    envVars:
+      - key: MURALHA_DB_PATH
+        value: /var/lib/muralha/muralha.sqlite3
+      - key: MURALHA_GOLDEN_DIR
+        value: /etc/secrets/oracles
+      - key: MURALHA_PRIVATE_TESTS_DIR
+        value: /etc/secrets/private_tests
+      - key: MURALHA_ENABLE_SANDBOX
+        value: "false"
+    disk:
+      name: muralha-data
+      mountPath: /var/lib/muralha
+      sizeGB: 1
