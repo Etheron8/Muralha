@@ -1,0 +1,93 @@
+name: Muralha Challenge Evaluation
+
+on:
+  pull_request_target:
+    branches: [main]
+    paths:
+      - "challenges/authorization-bypass/src/access_control.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: muralha-evaluation-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate-authorization-bypass:
+    name: "Muralha score — authorization-bypass"
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout trusted base (tests and evaluator)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          persist-credentials: false
+
+      - name: Checkout submitted code
+        if: ${{ github.event.pull_request.head.repo.full_name != '' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: submission
+          persist-credentials: false
+
+      - name: Build isolated test image from trusted base
+        run: docker build --pull -t muralha-test-runner:py312 -f trusted/sandbox/Dockerfile trusted
+
+      - name: Run trusted tests against submitted code
+        id: evaluate
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p "$RUNNER_TEMP/muralha"
+          candidate="$GITHUB_WORKSPACE/submission/challenges/authorization-bypass/src"
+          tests="$GITHUB_WORKSPACE/trusted/challenges/authorization-bypass/tests"
+
+          if [ ! -d "$candidate" ]; then
+            test_rc=1
+            echo "Candidate source directory is missing."
+          elif docker run --rm --pull=never \
+            --network=none --cpus=0.5 --memory=256m --memory-swap=256m \
+            --pids-limit=64 --cap-drop=ALL --security-opt=no-new-privileges:true \
+            --read-only --user=65534:65534 \
+            --tmpfs=/tmp:rw,noexec,nosuid,size=16m \
+            --mount "type=bind,src=$candidate,dst=/candidate/src,readonly" \
+            --mount "type=bind,src=$tests,dst=/tests,readonly" \
+            --workdir=/tmp muralha-test-runner:py312 \
+            python -I -B -m pytest -p no:cacheprovider -q /tests; then
+            test_rc=0
+          else
+            test_rc=$?
+          fi
+
+          python trusted/scripts/score_ci_result.py \
+            --exit-code "$test_rc" \
+            --output "$RUNNER_TEMP/muralha/score.json" \
+            >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Machine-readable result: $RUNNER_TEMP/muralha/score.json"
+
+      - name: Upload machine-readable score
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: muralha-score-pr-${{ github.event.pull_request.number }}
+          path: ${{ runner.temp }}/muralha/score.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Require a passing score
+        if: ${{ steps.evaluate.outputs.status != 'passed' }}
+        env:
+          RESULT_STATUS: ${{ steps.evaluate.outputs.status }}
+          RESULT_SCORE: ${{ steps.evaluate.outputs.score }}
+        run: |
+          echo "Muralha result: status=$RESULT_STATUS score=$RESULT_SCORE/100"
+          exit 1
