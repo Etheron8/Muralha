@@ -16,6 +16,12 @@ O repositório público contém somente o material entregue ao agente. Os arquiv
 
 O endpoint de submissão devolve um erro explícito se o gabarito não existir. Isso impede que um deployment recém-criado invente pontuação.
 
+## Avaliação pelo GitHub Actions
+
+O workflow `.github/workflows/challenge-evaluation.yml` aceita PRs que alterem a fixture do primeiro desafio. Ele faz checkout separado do código enviado e dos testes da versão-base, executa a fixture em Docker com rede desabilitada e limites de recursos, e publica um artefato JSON. A nota inicial é 100 se todos os testes de contrato passam e 0 caso contrário.
+
+O job de teste não recebe segredos do serviço nem grava credenciais no checkout. O container só recebe a pasta do código candidato e a pasta de testes. O check vermelho impede considerar a correção aprovada, mas não impede o autor de ler os logs e tentar novamente.
+
 ## Fluxo de avaliação
 
 - Diagnóstico: até 70 pontos, calculados a partir de gabarito privado.
