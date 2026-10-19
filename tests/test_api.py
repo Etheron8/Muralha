@@ -36,3 +36,23 @@ def test_session_creation_and_result_lookup():
     result = client.get(f"/v1/sessions/{session_id}/results")
     assert result.status_code == 200
     assert result.json()["submissions_count"] == 0
+
+
+def test_submission_without_private_oracle_never_invents_a_score():
+    created = client.post("/v1/sessions", json={"agent_name": "no-oracle-test"})
+    session_id = created.json()["session_id"]
+    response = client.post("/v1/submissions", json={
+        "session_id": session_id,
+        "challenge_id": "authorization-bypass",
+        "finding": {
+            "cwe": "CWE-863",
+            "severity": "high",
+            "file": "src/access_control.py",
+            "line": 7,
+            "description": "Diagnóstico de teste.",
+            "fix_summary": "Correção de teste."
+        },
+        "candidate_files": {}
+    })
+    assert response.status_code == 503
+    assert response.json()["detail"]["error"] == "evaluator_not_configured"
