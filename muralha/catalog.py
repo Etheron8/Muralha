@@ -12,7 +12,7 @@ def load_catalog(path: Path = CATALOG_PATH) -> list[dict[str, Any]]:
     """Carrega e valida metadados públicos; nunca carrega gabaritos."""
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, list):
-        raise ValueError("O catálogo deve ser uma lista.")
+        raise TypeError("O catálogo deve ser uma lista.")
     seen: set[str] = set()
     for item in raw:
         challenge_id = item.get("id")
