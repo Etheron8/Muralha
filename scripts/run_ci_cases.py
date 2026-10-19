@@ -9,8 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from muralha.sandbox import evaluate_cases_in_docker  # noqa: E402
-from score_ci_result import build_result, write_result  # noqa: E402
+from muralha.sandbox import evaluate_cases_in_docker
+from scripts.score_ci_result import build_result, write_result
 
 
 def main() -> int:
