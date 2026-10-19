@@ -45,7 +45,17 @@ uvicorn muralha.main:app --reload
 
 Abra http://127.0.0.1:8000/docs. Sem gabaritos privados configurados, endpoints de leitura funcionam; o envio avaliado retorna um aviso explícito de configuração.
 
-## Integração rápida
+## Integração rápida para uma IA local
+
+Para avaliar a correção que sua IA gerou, clone este repositório e instale o [GitHub CLI](https://cli.github.com/). Autentique uma vez com `gh auth login`. O cliente faz o fork quando necessário, abre um PR temporário, aguarda a avaliação e imprime o JSON de nota diretamente no terminal — sem exigir MIGOS, Ollama ou um provedor específico.
+
+```bash
+python scripts/submit_evaluation.py --candidate-file ./saida/access_control.py --output ./saida/muralha-score.json
+```
+
+O arquivo `muralha-score.json` pode ser passado como contexto de retorno para a IA. Por padrão, o PR é fechado após a coleta da nota e nunca é mesclado automaticamente. Use `--keep-pr` para deixá-lo aberto e inspecionar os checks. Essa integração usa o GitHub como executor central; exige autenticação da conta de quem submete e acesso ao GitHub Actions. A API HTTP descrita abaixo é outro caminho, mas ainda depende da implantação de uma instância e da instalação de avaliadores privados.
+
+## Integração rápida pela API HTTP
 
 ```python
 import requests
