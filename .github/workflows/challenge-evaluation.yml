@@ -35,69 +35,21 @@ jobs:
           path: submission
           persist-credentials: false
 
-      - name: Build isolated test image from trusted base
+      - name: Build isolated evaluator image from trusted base
         run: docker build --pull -t muralha-test-runner:py312 -f trusted/sandbox/Dockerfile trusted
 
-      - name: Run trusted tests against submitted code
+      - name: Evaluate trusted cases
         id: evaluate
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        shell: bash
         run: |
-          set -uo pipefail
           mkdir -p "$RUNNER_TEMP/muralha"
-          candidate="$GITHUB_WORKSPACE/submission/challenges/authorization-bypass/src"
-          tests="$GITHUB_WORKSPACE/trusted/challenges/authorization-bypass/tests"
-          test_names=(
-            test_admin_can_access_document_owned_by_another_user
-            test_user_can_access_own_document
-            test_user_cannot_access_another_users_document
-            test_unknown_role_is_denied_even_if_document_owner
-            test_document_without_owner_is_not_accessible_to_regular_user
-          )
-          passed_count=0
-          failed_tests=()
-
-          for test_name in "${test_names[@]}"; do
-            log_file="$RUNNER_TEMP/muralha/$test_name.log"
-            if [ ! -d "$candidate" ]; then
-              test_rc=1
-              echo "Candidate source directory is missing." > "$log_file"
-            elif docker run --rm --pull=never \
-              --network=none --cpus=0.5 --memory=256m --memory-swap=256m \
-              --pids-limit=64 --cap-drop=ALL --security-opt=no-new-privileges:true \
-              --read-only --user=65534:65534 \
-              --tmpfs=/tmp:rw,noexec,nosuid,size=16m \
-              --mount "type=bind,src=$candidate,dst=/candidate/src,readonly" \
-              --mount "type=bind,src=$tests,dst=/tests,readonly" \
-              --workdir=/tmp muralha-test-runner:py312 \
-              python -I -B -m pytest -p no:cacheprovider -q "/tests/test_access_control.py::$test_name" \
-              > "$log_file" 2>&1; then
-              test_rc=0
-              passed_count=$((passed_count + 1))
-              echo "- ✅ $test_name" >> "$GITHUB_STEP_SUMMARY"
-            else
-              test_rc=$?
-              failed_tests+=("$test_name")
-              echo "- ❌ $test_name" >> "$GITHUB_STEP_SUMMARY"
-              head -c 8000 "$log_file" >> "$GITHUB_STEP_SUMMARY" || true
-              echo "" >> "$GITHUB_STEP_SUMMARY"
-            fi
-          done
-
-          args=()
-          for failed_test in "${failed_tests[@]}"; do
-            args+=(--failed-test "$failed_test")
-          done
-          python trusted/scripts/score_ci_result.py \
-            --passed-count "$passed_count" \
-            --total-count "${#test_names[@]}" \
-            "${args[@]}" \
+          python trusted/scripts/run_ci_cases.py \
+            --candidate "$GITHUB_WORKSPACE/submission/challenges/authorization-bypass" \
+            --cases "$GITHUB_WORKSPACE/trusted/challenges/authorization-bypass/tests/cases.json" \
             --output "$RUNNER_TEMP/muralha/score.json" \
             >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Machine-readable result: $RUNNER_TEMP/muralha/score.json"
 
       - name: Upload machine-readable score
         if: always()
@@ -108,7 +60,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Require a passing score
+      - name: Require a 100-point score
         if: ${{ steps.evaluate.outputs.status != 'passed' }}
         env:
           RESULT_STATUS: ${{ steps.evaluate.outputs.status }}
