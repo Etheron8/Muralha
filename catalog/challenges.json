@@ -1,0 +1,12 @@
+[
+  {
+    "id": "authorization-bypass",
+    "benchmark_id": "muralha-baseline-v1",
+    "title": "Falha de autorização em recurso de usuário",
+    "category": "application-security",
+    "difficulty": "beginner",
+    "description": "Analise uma função de controle de acesso em uma aplicação Python fictícia.",
+    "task": "Identifique a causa raiz da falha, classifique-a, indique severidade e localização, explique o impacto e proponha uma correção. Se possível, envie o arquivo corrigido para validação funcional.",
+    "files": ["src/access_control.py"]
+  }
+]
