@@ -1,0 +1,50 @@
+{
+  "function": "can_access_document",
+  "cases": [
+    {
+      "name": "admin_can_access_another_users_document",
+      "kwargs": {
+        "requester_id": 99,
+        "role": "admin",
+        "document": {"owner_id": 7}
+      },
+      "expected": true
+    },
+    {
+      "name": "user_can_access_own_document",
+      "kwargs": {
+        "requester_id": 7,
+        "role": "user",
+        "document": {"owner_id": 7}
+      },
+      "expected": true
+    },
+    {
+      "name": "non_owner_user_is_denied",
+      "kwargs": {
+        "requester_id": 99,
+        "role": "user",
+        "document": {"owner_id": 7}
+      },
+      "expected": false
+    },
+    {
+      "name": "unknown_role_is_denied",
+      "kwargs": {
+        "requester_id": 7,
+        "role": "guest",
+        "document": {"owner_id": 7}
+      },
+      "expected": false
+    },
+    {
+      "name": "document_without_owner_is_denied",
+      "kwargs": {
+        "requester_id": 7,
+        "role": "user",
+        "document": {}
+      },
+      "expected": false
+    }
+  ]
+}
